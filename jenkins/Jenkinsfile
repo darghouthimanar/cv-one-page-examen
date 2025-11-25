@@ -1,0 +1,41 @@
+pipeline {
+    agent any
+    environment {
+        DOCKERHUB_CRED = 'dockerhub-creds'
+        DOCKER_IMAGE = "manardarghouthi/moncv:${env.BUILD_NUMBER}"
+        SLACK_CRED = 'slack-webhook'
+    }
+    triggers {
+        pollSCM('H/5 * * * *') // Vérifie le repo toutes les 5 minutes
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        stage('Build') {
+            steps {
+                sh "docker build -t ${DOCKER_IMAGE} docker/"
+            }
+        }
+        stage('Push') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: "${DOCKERHUB_CRED}", usernameVariable: 'DH_USER', passwordVariable: 'DH_PASS')]) {
+                    sh 'echo $DH_PASS | docker login --username $DH_USER --password-stdin'
+                    sh "docker push ${DOCKER_IMAGE}"
+                }
+            }
+        }
+        stage('Notify') {
+            steps {
+                withCredentials([string(credentialsId: "${SLACK_CRED}", variable: 'SLACK_WEBHOOK')]) {
+                    sh """curl -X POST -H 'Content-type: application/json' \
+                        --data '{"text":"Build #${env.BUILD_NUMBER} de CV-One-Page terminé !"}' \
+                        $SLACK_WEBHOOK"""
+                }
+            }
+        }
+    }
+}
+

@@ -1,0 +1,24 @@
+- name: Install unzip and curl
+  apt:
+    name: ['unzip','curl']
+    state: present
+    update_cache: yes
+
+- name: Download Terraform (1.5.7 example)
+  get_url:
+    url: "https://releases.hashicorp.com/terraform/1.5.7/terraform_1.5.7_linux_amd64.zip"
+    dest: /tmp/terraform.zip
+  register: tfdownload
+
+- name: Unzip terraform to /usr/local/bin
+  unarchive:
+    src: /tmp/terraform.zip
+    dest: /usr/local/bin
+    remote_src: yes
+  when: tfdownload is changed
+
+- name: Ensure terraform executable
+  file:
+    path: /usr/local/bin/terraform
+    mode: '0755'
+
