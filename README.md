@@ -29,7 +29,7 @@ Ce projet a pour objectif de déployer une **application statique CV One Page** 
 
 ## Architecture du projet
 
-```text
+
 [CV One Page HTML/CSS] --> [Docker Image] --> [Docker Hub] --> [K3s Deployment] --> [Argo CD] --> [Grafana Cloud Monitoring]
 ---
 ## Installation des outils 
